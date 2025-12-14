@@ -9,7 +9,8 @@ app = FastAPI()
 # Structure the stats
 class SystemStats(BaseModel):
     os: str
-    cpu_percent: float = 0.0
+    cpu_percent: list[float]
+    core_cpu_percents: list[float]
     ram_percent: float
 
 
@@ -37,7 +38,8 @@ def get_system_stats():
         stats = SystemStats(
             os=go_data.get("platform", "Unkown"),
             ram_percent=go_data.get("memoryUsedPercent", 0.0),
-            cpu_percent=0.0,
+            cpu_percent=go_data.get("TcpuUsedP", [0.0]),
+            core_cpu_percents=go_data.get("cpuUsedPercent", [0.0]),
         )
         return stats
 

@@ -2,10 +2,12 @@ package main
 
 import ( 
 	"fmt"
+	"time"
 	"net/http"
 	"encoding/json"
 	"github.com/shirou/gopsutil/v4/host"
 	"github.com/shirou/gopsutil/v4/mem"
+	"github.com/shirou/gopsutil/v4/cpu"
 )
 
 
@@ -16,6 +18,8 @@ import (
 			MemTotal	uint64 `json:"totalMemory"`
 			MemFree		uint64 `json:"freeMemory"`
 			MemUsedP	float64 `json:"memoryUsedPercent"`
+			TcpuUsedP	[]float64 `json:"totalCpuUsedPercent"`
+			CpuUsedP	[]float64 `json:"cpuUsedPercent"`
 		}
 
 func rawStatsHandler(w http.ResponseWriter, r *http.Request) {
@@ -23,7 +27,9 @@ func rawStatsHandler(w http.ResponseWriter, r *http.Request) {
 		
 	v, _ := mem.VirtualMemory()
 	platform, family, version, _ := host.PlatformInformation()
-
+	tCpuPercent, _ := cpu.Percent(time.Second, false)
+	cpuPercent, _ := cpu.Percent(time.Second, true)
+	
 	data := SystemStats{
 		Platform:	platform,
 		Family: family,
@@ -31,7 +37,8 @@ func rawStatsHandler(w http.ResponseWriter, r *http.Request) {
 		MemTotal: v.Total,
 		MemFree: v.Free,
 		MemUsedP: v.UsedPercent,
-
+		TcpuUsedP: tCpuPercent,
+		CpuUsedP: cpuPercent,
 	}
 
 	json.NewEncoder(w).Encode(data)
