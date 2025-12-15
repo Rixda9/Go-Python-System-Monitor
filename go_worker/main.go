@@ -22,13 +22,30 @@ import (
 			CpuUsedP	[]float64 `json:"cpuUsedPercent"`
 		}
 
+type CPUData struct {
+	Total float64
+	Cores []float64
+}
+var latestCPUData = CPUData{}
+
+func monitorCPU() {
+	for {
+		tCpuPercent, _ := cpu.Percent(time.Second, false)
+		cpuPercent, _ := cpu.Percent(time.Second, true)
+
+		latestCPUData = CPUData {
+			Total: tCpuPercent[0],
+			Cores: cpuPercent,
+		}
+		time.Sleep(time.Second)
+	}
+}
+
 func rawStatsHandler(w http.ResponseWriter, r *http.Request) {
 	w.Header().Set("Content-Type", "application/json")
 		
 	v, _ := mem.VirtualMemory()
 	platform, family, version, _ := host.PlatformInformation()
-	tCpuPercent, _ := cpu.Percent(time.Second, false)
-	cpuPercent, _ := cpu.Percent(time.Second, true)
 	
 	data := SystemStats{
 		Platform:	platform,
@@ -37,8 +54,8 @@ func rawStatsHandler(w http.ResponseWriter, r *http.Request) {
 		MemTotal: v.Total,
 		MemFree: v.Free,
 		MemUsedP: v.UsedPercent,
-		TcpuUsedP: tCpuPercent,
-		CpuUsedP: cpuPercent,
+		TcpuUsedP: []float64{latestCPUData.Total},
+		CpuUsedP: latestCPUData.Cores,
 	}
 
 	json.NewEncoder(w).Encode(data)
@@ -52,6 +69,8 @@ func rootHandler(w http.ResponseWriter, r *http.Request) {
 
 func main() {
 	
+	go monitorCPU()
+
 	http.HandleFunc("/", rootHandler)
 
 	http.HandleFunc("/rawstats", rawStatsHandler)
