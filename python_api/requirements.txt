@@ -1,9 +1,4 @@
-attrs==25.4.0
-cffi==2.0.0
-cryptography==46.0.3
-filelock==3.20.0
-gps==3.27
-packaging==25.0
-pycparser==2.23
-PyGObject==3.54.5
-wheel==0.45.1
+fastapi
+uvicorn
+requests
+pydantic
